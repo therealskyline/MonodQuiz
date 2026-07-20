@@ -21,31 +21,6 @@ body {
   overflow-y: auto;
 }
 
-.blob-1 {
-  position: fixed;
-  bottom: -80px;
-  left: -80px;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #d7d3f540 0%, transparent 70%);
-  z-index: 0;
-  pointer-events: none;
-}
-
-.blob-2 {
-  position: fixed;
-  top: -60px;
-  right: -60px;
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #b3a8ff25 0%, transparent 70%);
-  z-index: 0;
-  pointer-events: none;
-}
-
-
 .header {
   position: relative;
   z-index: 2;

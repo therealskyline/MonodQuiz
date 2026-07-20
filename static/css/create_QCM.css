@@ -1080,7 +1080,7 @@ textarea::placeholder {
 }
 @media (max-width: 500px) {
     .logo-wrap {
-        transform: scale(0.8);
+        transform: scale(1);
     }
     .panel {
         padding: 18px;

@@ -585,6 +585,8 @@ body.score-mode .content-area {
 }
 
 @media (max-width: 768px) {
+    .logo-wrap {transform: scale(1);}
+
     .top-bar {
         padding: 16px 20px;
     }
@@ -595,6 +597,7 @@ body.score-mode .content-area {
         display: flex;
         align-items: center;
         justify-content: center;
+        transform: scale(0.85);
     }
 
     .answers-grid {

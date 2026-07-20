@@ -80,12 +80,7 @@ body {
     color: #FFFFFF;
 }
 
-
-body.score-mode .brand-label {
-    color: #1A1A2E;
-}
-
-body.score-mode .exit-btn {
+body.score-mode .top-bar {
     display: none;
 }
 

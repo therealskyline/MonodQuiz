@@ -27,7 +27,7 @@ except Exception:
     genai_client = None
     print("ATTENTION: GEMINI_API_KEY non configurée ou invalide.")
 
-_DEFAULT_DEV_KEY = "MonodAdmin2024"
+_DEFAULT_DEV_KEY = "MonodAdmin1234"
 _prof_plain = os.getenv("QCM_PROF_KEY", _DEFAULT_DEV_KEY)
 secret_key_access: str = hashlib.sha256(_prof_plain.encode()).hexdigest()
 del _prof_plain

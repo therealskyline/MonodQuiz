@@ -672,3 +672,21 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 512px) {
+  .logo-wrap {
+    display: none;
+  }
+
+  .logout-btn {
+    border: none;
+    background: transparent;
+    padding: 8px;
+    gap: 0;
+    margin-left: auto;
+  }
+
+  .logout-btn .btn-text {
+    display: none;
+  }
+}

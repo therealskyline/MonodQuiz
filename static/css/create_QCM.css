@@ -1101,3 +1101,21 @@ textarea::placeholder {
         transform: scale(1.6) !important;
     }
 }
+
+@media (max-width: 512px) {
+    .logo-wrap {
+        display: none;
+    }
+
+    .return-btn {
+        border: none;
+        background: transparent;
+        padding: 8px;
+        gap: 0;
+        margin-left: auto;
+    }
+
+    .return-btn .btn-text {
+        display: none;
+    }
+}

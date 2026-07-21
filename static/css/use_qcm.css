@@ -80,6 +80,10 @@ body {
     color: #FFFFFF;
 }
 
+.exit-btn .icon-mobile {
+    display: none;
+}
+
 body.score-mode .top-bar {
     display: none;
 }
@@ -644,5 +648,35 @@ body.score-mode .content-area {
 
     .score-wrap.zoom {
         transform: scale(1);
+    }
+}
+
+@media (max-width: 512px) {
+    .logo-wrap {
+        display: none;
+    }
+
+    .exit-btn {
+        border: none;
+        background: transparent;
+        padding: 8px;
+        gap: 0;
+    }
+
+    .exit-btn:hover {
+        background: transparent;
+        color: #E0E0FF;
+    }
+
+    .exit-btn .btn-text {
+        display: none;
+    }
+
+    .exit-btn .icon-desktop {
+        display: none;
+    }
+
+    .exit-btn .icon-mobile {
+        display: inline-block;
     }
 }

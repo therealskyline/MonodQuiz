@@ -667,7 +667,7 @@ body {
 }
 
 @media (max-width: 500px) {
-
+  .logo-wrap { transform : scale(1); }
   .qcm-list {
     grid-template-columns: 1fr;
   }

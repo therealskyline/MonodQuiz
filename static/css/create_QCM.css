@@ -1115,6 +1115,10 @@ textarea::placeholder {
         margin-left: auto;
     }
 
+    .return-btn i {
+        font-size: 1.4rem;
+    }
+
     .return-btn .btn-text {
         display: none;
     }

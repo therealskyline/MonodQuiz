@@ -686,6 +686,10 @@ body {
     margin-left: auto;
   }
 
+  .logout-btn i {
+    font-size: 1.3rem;
+  }
+
   .logout-btn .btn-text {
     display: none;
   }

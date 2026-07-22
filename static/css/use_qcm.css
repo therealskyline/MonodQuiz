@@ -663,6 +663,10 @@ body.score-mode .content-area {
         gap: 0;
     }
 
+    .exit-btn i {
+        font-size: 1.4rem;
+    }
+
     .exit-btn:hover {
         background: transparent;
         color: #E0E0FF;

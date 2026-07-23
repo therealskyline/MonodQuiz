@@ -163,71 +163,73 @@ let qcmData = null;
 
             container.innerHTML = `
                 <div class="score-wrap" id="scoreWrap">
-                    <div class="score-left">
-                        <div class="score-screen">
-                            <div class="score-title">Félicitations ! 🎉</div>
-                            <div class="score-subtitle">Bravo, tu as terminé le QCM !</div>
+                    <div class="score-body">
+                        <div class="score-left">
+                            <div class="score-screen">
+                                <div class="score-title">Félicitations ! 🎉</div>
+                                <div class="score-subtitle">Bravo, tu as terminé le QCM !</div>
 
-                            <div class="score-circle-wrap">
-                                <svg viewBox="0 0 200 200">
-                                    <circle class="score-circle-bg" cx="100" cy="100" r="${radius}"></circle>
-                                    <circle class="score-circle-fg" cx="100" cy="100" r="${radius}"
-                                        stroke-dasharray="${circumference}"
-                                        stroke-dashoffset="${circumference}"
-                                        id="scoreCircleFg"></circle>
-                                </svg>
-                                <div class="score-circle-text">
-                                    <div class="score-percent">${percent}<sup>%</sup></div>
-                                    <div class="score-fraction">${goodCount} / ${totalQuestions} bonnes réponses</div>
+                                <div class="score-circle-wrap">
+                                    <svg viewBox="0 0 200 200">
+                                        <circle class="score-circle-bg" cx="100" cy="100" r="${radius}"></circle>
+                                        <circle class="score-circle-fg" cx="100" cy="100" r="${radius}"
+                                            stroke-dasharray="${circumference}"
+                                            stroke-dashoffset="${circumference}"
+                                            id="scoreCircleFg"></circle>
+                                    </svg>
+                                    <div class="score-circle-text">
+                                        <div class="score-percent">${percent}<sup>%</sup></div>
+                                        <div class="score-fraction">${goodCount} / ${totalQuestions} bonnes réponses</div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="score-threshold">
-                                <div class="score-threshold-icon"><i class="fa-solid ${threshold.icon}"></i></div>
-                                <div class="score-threshold-text">
-                                    <div class="score-threshold-title">${threshold.title}</div>
-                                    <div class="score-threshold-desc">${threshold.desc}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="score-right">
-                        <div>
-                            <div class="summary-grid">
-                                <div class="summary-card">
-                                    <div class="label">Bonnes réponses</div>
-                                    <div class="value">${goodCount}</div>
-                                </div>
-                                <div class="summary-card">
-                                    <div class="label">Erreurs</div>
-                                    <div class="value">${badCount}</div>
-                                </div>
-                            </div>
-
-                            <div class="qcm-info-box">
-                                <div class="qcm-info-row">
-                                    <span class="qcm-info-label">Matière</span>
-                                    <span class="qcm-info-value">${escapeHtml(qcmData.theme || 'N/A')}</span>
-                                </div>
-                                <div class="qcm-info-row">
-                                    <span class="qcm-info-label">QCM</span>
-                                    <span class="qcm-info-value">${escapeHtml(qcmData.qcm_name || 'N/A')}</span>
-                                </div>
-                                <div class="qcm-info-row">
-                                    <span class="qcm-info-label">Auteur</span>
-                                    <span class="qcm-info-value">${escapeHtml(qcmData.auteur || 'N/A')}</span>
+                                <div class="score-threshold">
+                                    <div class="score-threshold-icon"><i class="fa-solid ${threshold.icon}"></i></div>
+                                    <div class="score-threshold-text">
+                                        <div class="score-threshold-title">${threshold.title}</div>
+                                        <div class="score-threshold-desc">${threshold.desc}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="score-actions">
-                            <button class="score-btn secondary" onclick="restartQuiz()">
-                                <i class="fa-solid fa-rotate-left"></i> Refaire le QCM
-                            </button>
-                            <a class="score-btn primary" href="/eleve_dashboard.html">
-                                <i class="fa-solid fa-house"></i> Retour au tableau de bord
-                            </a>
+                        <div class="score-right">
+                            <div>
+                                <div class="summary-grid">
+                                    <div class="summary-card">
+                                        <div class="label">Bonnes réponses</div>
+                                        <div class="value">${goodCount}</div>
+                                    </div>
+                                    <div class="summary-card">
+                                        <div class="label">Erreurs</div>
+                                        <div class="value">${badCount}</div>
+                                    </div>
+                                </div>
+
+                                <div class="qcm-info-box">
+                                    <div class="qcm-info-row">
+                                        <span class="qcm-info-label">Matière</span>
+                                        <span class="qcm-info-value">${escapeHtml(qcmData.theme || 'N/A')}</span>
+                                    </div>
+                                    <div class="qcm-info-row">
+                                        <span class="qcm-info-label">QCM</span>
+                                        <span class="qcm-info-value">${escapeHtml(qcmData.qcm_name || 'N/A')}</span>
+                                    </div>
+                                    <div class="qcm-info-row">
+                                        <span class="qcm-info-label">Auteur</span>
+                                        <span class="qcm-info-value">${escapeHtml(qcmData.auteur || 'N/A')}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="score-actions">
+                                <button class="score-btn secondary" onclick="restartQuiz()">
+                                    <i class="fa-solid fa-rotate-left"></i> Refaire le QCM
+                                </button>
+                                <a class="score-btn primary" href="/eleve_dashboard.html">
+                                    <i class="fa-solid fa-house"></i> Retour au tableau de bord
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

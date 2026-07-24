@@ -92,6 +92,10 @@ const headerEl = document.querySelector('.header');
           case 'reveal': handleReveal(data); break;
           case 'leaderboard': handleLeaderboard(data); break;
           case 'quiz_finished': case 'quiz_finished_prof': handleQuizFinished(data); break;
+          case 'prof_left':
+            isIntentionalLogout = true;
+            showExpelledNotice(data.message || "Le professeur a quitté la salle. La session est terminée.");
+            break;
           case 'error':
             isIntentionalLogout = true;
             showAlert(data.message, () => { 
@@ -118,6 +122,14 @@ const headerEl = document.querySelector('.header');
         document.getElementById('customModalOk').style.display = 'inline-block';
         modal.classList.add('active');
         document.getElementById('customModalOk').onclick = () => { modal.classList.remove('active'); if (onClose) onClose(); };
+    }
+    function showExpelledNotice(message) {
+        const overlay = document.getElementById('expelledNotice');
+        const target = (role === 'prof') ? '/prof_dashboard.html' : '/eleve_dashboard.html';
+        if (!overlay) { window.location.href = target; return; }
+        if (message) document.getElementById('expelledMessage').textContent = message;
+        overlay.classList.add('active');
+        document.getElementById('expelledBtn').onclick = () => { window.location.href = target; };
     }
     function showConfirm(message, onConfirm) {
         const modal = document.getElementById('customModal');

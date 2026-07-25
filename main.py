@@ -509,7 +509,7 @@ async def handle_prof_disconnect(code: str):
     await asyncio.sleep(DISCONNECT_GRACE_PERIOD)
     room = rooms.get(code)
     if room and room.get("prof_ws") is None:
-        await broadcast_to_room(code, {"type": "error", "message": "Le professeur a fermé la salle. La session est terminée."})
+        await broadcast_to_room(code, {"type": "prof_left", "message": "Le professeur a quitté la salle. La session est terminée."})
         for ws in list(room["students"].values()):
             try: await ws.close()
             except Exception: pass
@@ -521,6 +521,11 @@ async def handle_prof_disconnect(code: str):
 async def handle_room_empty(code: str):
     room = rooms.get(code)
     if not room or room["students"]:
+        return
+    # Pendant la phase d'attente (aucun quiz démarré), on garde la salle ouverte :
+    # le professeur ne doit pas être expulsé juste parce que le nombre d'élèves
+    # est brièvement retombé à zéro. On ne ferme la salle que si une partie a démarré.
+    if room.get("quiz") is None:
         return
     prof_ws = room.get("prof_ws")
     if prof_ws:

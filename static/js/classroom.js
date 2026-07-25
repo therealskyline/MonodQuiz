@@ -92,6 +92,10 @@ const headerEl = document.querySelector('.header');
           case 'reveal': handleReveal(data); break;
           case 'leaderboard': handleLeaderboard(data); break;
           case 'quiz_finished': case 'quiz_finished_prof': handleQuizFinished(data); break;
+          case 'prof_left':
+            isIntentionalLogout = true;
+            window.location.href = (role === 'prof') ? '/prof_dashboard.html' : '/eleve_dashboard.html?reason=prof_left';
+            break;
           case 'error':
             isIntentionalLogout = true;
             showAlert(data.message, () => { 

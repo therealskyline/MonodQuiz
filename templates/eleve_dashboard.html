@@ -97,6 +97,16 @@
     </div>
   </div>
 
+  
+  <div class="modal-overlay" id="profLeftNotice" onclick="if (event.target === this) closeProfLeftNotice()">
+    <div class="modal-box notice-modal">
+      <div class="notice-modal-icon"><i class="fa-solid fa-user-slash"></i></div>
+      <h2>Session fermée</h2>
+      <p>Le professeur a quitté la salle. La session a été fermée automatiquement et vous en avez été retiré.</p>
+      <button class="notice-modal-btn" type="button" onclick="closeProfLeftNotice()">Compris</button>
+    </div>
+  </div>
+
   <script src="/static/js/eleve_dashboard.js"></script>
 </body>
 </html>

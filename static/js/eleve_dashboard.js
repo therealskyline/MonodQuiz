@@ -4,7 +4,19 @@ const inputs = document.querySelectorAll('.code-input');
     document.addEventListener('DOMContentLoaded', () => {
       loadPublicQcms();
       bindPublicQcmEvents();
+      checkProfLeftNotice();
     });
+
+    function checkProfLeftNotice() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('reason') !== 'prof_left') return;
+      window.history.replaceState({}, '', window.location.pathname);
+      document.getElementById('profLeftNotice')?.classList.add('active');
+    }
+
+    function closeProfLeftNotice() {
+      document.getElementById('profLeftNotice')?.classList.remove('active');
+    }
 
     inputs.forEach((input, i) => {
       input.addEventListener('input', () => {

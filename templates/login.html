@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monod Quiz</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 <link rel="stylesheet" href="/static/css/login.css">
 </head>
@@ -31,10 +32,38 @@
 
 <main class="arena">
   <div class="cards-scene">
-    <div class="theme-card card-tl" id="cardTL"></div>
-    <div class="theme-card card-tr" id="cardTR"></div>
-    <div class="theme-card card-bl" id="cardBL"></div>
-    <div class="theme-card card-br" id="cardBR"></div>
+    <div class="theme-card card-tl" id="cardTL">
+      <div class="theme-icon algebra-icon"><i class="fa-solid fa-square-root-variable"></i></div>
+      <div class="theme-copy">
+        <h2>Algèbre</h2>
+        <span class="theme-line"></span>
+        <p>Équations, expressions,<br> inéquations et calcul littéral.</p>
+      </div>
+    </div>
+    <div class="theme-card card-tr" id="cardTR">
+      <div class="theme-icon geometry-icon"><i class="fa-solid fa-shapes"></i></div>
+      <div class="theme-copy">
+        <h2>Géométrie</h2>
+        <span class="theme-line"></span>
+        <p>Figures, angles, théorèmes<br> et constructions géométriques.</p>
+      </div>
+    </div>
+    <div class="theme-card card-bl" id="cardBL">
+      <div class="theme-icon statistics-icon"><i class="fa-solid fa-chart-pie"></i></div>
+      <div class="theme-copy">
+        <h2>Statistiques</h2>
+        <span class="theme-line"></span>
+        <p>Tableaux, graphiques,<br> moyennes et pourcentages.</p>
+      </div>
+    </div>
+    <div class="theme-card card-br" id="cardBR">
+      <div class="theme-icon functions-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <div class="theme-copy">
+        <h2>Fonctions</h2>
+        <span class="theme-line"></span>
+        <p>Graphiques, variations,<br> proportionnalité et relations.</p>
+      </div>
+    </div>
 
     <div class="halo-btn" id="haloBtn">
       <div class="play-btn" id="playBtn" onclick="ouvrirModal()">

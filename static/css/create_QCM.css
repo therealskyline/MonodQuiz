@@ -408,6 +408,7 @@ textarea::placeholder {
 .drag-handle {
     color: #D1D5DB;
     cursor: grab;
+    touch-action: none;
     font-size: 18px;
     display: flex;
     align-items: center;
@@ -426,6 +427,7 @@ textarea::placeholder {
 }
 .q-title-input {
     flex: 1;
+    min-width: 0;
     border: none;
     outline: none;
     font-size: 14px;
@@ -433,6 +435,9 @@ textarea::placeholder {
     color: #374151;
     font-family: inherit;
     background: transparent;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .q-actions {
     display: flex;
@@ -458,6 +463,11 @@ textarea::placeholder {
     background: #FEF2F2;
 }
 .q-actions .btn-copy:hover  {
+    color: #4F46E5;
+    background: #EEF2FF;
+}
+.q-actions .btn-expand:hover,
+.answer-expand:hover {
     color: #4F46E5;
     background: #EEF2FF;
 }
@@ -505,12 +515,28 @@ textarea::placeholder {
 }
 .answer-input {
     flex: 1;
+    min-width: 0;
     border: none;
     outline: none;
     font-size: 13px;
     color: #374151;
     font-family: inherit;
     background: transparent;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.answer-expand {
+    border: none;
+    background: transparent;
+    color: #9CA3AF;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 .answer-radio {
     width: 18px;
@@ -589,6 +615,28 @@ textarea::placeholder {
     border: none;
     cursor: default;
     font-family: inherit;
+}
+.multiple-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #22C55E;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+}
+.multiple-toggle input {
+    width: 16px;
+    height: 16px;
+    accent-color: #22C55E;
+    cursor: pointer;
+}
+.question-multiple .answer-radio {
+    border-radius: 4px;
+}
+.question-multiple .answer-item.correct .answer-radio::after {
+    border-radius: 2px;
 }
 .choice-toggle {
     display: flex;
@@ -960,6 +1008,63 @@ textarea::placeholder {
     padding: 0 22px;
     margin-top: 0;
 }
+.text-editor-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 1100;
+}
+.text-editor-modal.open {
+    display: flex;
+}
+.text-editor-content {
+    width: min(560px, 100%);
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+.text-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+.text-editor-header h3 {
+    color: #111827;
+    font-size: 18px;
+}
+.text-editor-content textarea {
+    display: block;
+    width: 100%;
+    min-height: 150px;
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    padding: 12px 14px;
+    resize: vertical;
+    outline: none;
+    color: #111827;
+    font: inherit;
+}
+.text-editor-content textarea:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+.text-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+.text-editor-actions .save-btn {
+    width: auto;
+    margin-top: 0;
+    padding: 0 22px;
+}
 .btn-secondary {
     height: 40px;
     padding: 0 18px;
@@ -1069,6 +1174,9 @@ textarea::placeholder {
         width: 100%;
         height: auto;
         position: static;
+    }
+    .panel-right.is-empty {
+        display: none;
     }
     #pane-manual.active {
         height: auto;

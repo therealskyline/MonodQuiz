@@ -44,6 +44,7 @@
   
   <div class="quiz-view" id="quizView">
     <div id="questionPhase">
+      <div class="multiple-question-badge" id="multipleQuestionBadge"><i class="fa-solid fa-list-check"></i><span>Question à choix multiples</span></div>
       <p class="progress-text" id="quizProgressText">Question 1/10</p>
       <div class="question-title" id="questionTitle"></div>
       <div class="answers-grid" id="answersGrid"></div>
@@ -51,6 +52,7 @@
         <div class="timer-block"><i class="fa-regular fa-clock"></i><span id="timerText">30 sec</span><div class="timer-bar-track"><div class="timer-bar-fill" id="timerBarFill"></div></div></div>
         <div class="responses-count prof-only" id="responsesCount">Réponses reçues : 0/0</div>
       </div>
+      <button class="validate-btn multi-answer-submit" id="multiAnswerSubmit" style="display:none;" disabled><i class="fa-solid fa-check"></i> Valider mes réponses</button>
       <button class="validate-btn prof-only" id="validateBtn"><i class="fa-solid fa-check"></i> Valider la question</button>
     </div>
     <div id="revealPhase">

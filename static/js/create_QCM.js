@@ -10,7 +10,7 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
     let aiFiles = [];
 
     function createQuestion(text, answers) {
-        return { id: nextQuestionId++, text, answers };
+        return { id: nextQuestionId++, text, answers, multiple: false };
     }
 
     const aiPromptInput = document.getElementById('ai-prompt-input');
@@ -142,6 +142,7 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
             questions = qcmData.questions.map(q => ({
                 id: nextQuestionId++,
                 text: q.text || '',
+                multiple: !!q.multiple,
                 answers: (q.answers || []).map(a => ({
                     letter: a.letter || '',
                     text: a.text || '',
@@ -201,6 +202,7 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
                 questions = data.questions.map(q => ({
                     id: nextQuestionId++,
                     text: q.text || '',
+                    multiple: !!q.multiple,
                     answers: (q.answers || []).map(a => ({
                         letter: a.letter || '',
                         text: a.text || '',
@@ -320,7 +322,7 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
 
     function buildQuestionCard(q, qi) {
         const card = document.createElement('div');
-        card.className = 'question-card';
+        card.className = 'question-card' + (q.multiple ? ' question-multiple' : '');
         card.dataset.qi = qi;
         card.dataset.id = q.id;
 
@@ -331,7 +333,7 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
         drag.className = 'drag-handle';
         drag.innerHTML = '<i class="ti ti-grip-vertical"></i>';
 
-        drag.addEventListener('mousedown', e => startDrag(e, card, qi));
+        drag.addEventListener('pointerdown', e => startDrag(e, card, qi));
 
         const badge = document.createElement('span');
         badge.className = 'q-badge';
@@ -347,6 +349,8 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
 
         const actions = document.createElement('div');
         actions.className = 'q-actions';
+
+        const expandQuestionBtn = createTextExpandButton('question', qi);
 
         const copyBtn = document.createElement('button');
         copyBtn.className = 'btn-copy';
@@ -373,6 +377,7 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
             renderEdition(); renderPreview();
         };
 
+        if (needsTextEditor(q.text, 'question')) actions.append(expandQuestionBtn);
         actions.append(copyBtn, delBtn);
         top.append(drag, badge, titleInput, actions);
 
@@ -397,11 +402,17 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
             toggle.appendChild(btn);
         });
 
-        const correctLabel = document.createElement('button');
-        correctLabel.className = 'btn-correct-label';
-        correctLabel.innerHTML = '<i class="ti ti-circle-check"></i> Réponse correcte';
+        const multipleLabel = document.createElement('label');
+        multipleLabel.className = 'multiple-toggle';
+        const multipleInput = document.createElement('input');
+        multipleInput.type = 'checkbox';
+        multipleInput.checked = !!q.multiple;
+        multipleInput.addEventListener('change', () => setMultipleChoice(qi, multipleInput.checked));
+        const multipleText = document.createElement('span');
+        multipleText.textContent = 'Multi-réponse';
+        multipleLabel.append(multipleInput, multipleText);
 
-        footer.append(toggle, correctLabel);
+        footer.append(toggle, multipleLabel);
         card.append(top, grid, footer);
         return card;
     }
@@ -426,6 +437,19 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
         renderPreview();
     }
 
+    function setMultipleChoice(qi, enabled) {
+        const question = questions[qi];
+        question.multiple = enabled;
+        if (!enabled) {
+            const firstCorrect = question.answers.findIndex(answer => answer.correct);
+            question.answers.forEach((answer, index) => {
+                answer.correct = index === (firstCorrect >= 0 ? firstCorrect : 0);
+            });
+        }
+        renderEdition();
+        renderPreview();
+    }
+
     function buildAnswerItem(ans, qi, ai) {
         const item = document.createElement('div');
         item.className = 'answer-item' + (ans.correct ? ' correct' : '');
@@ -442,24 +466,90 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
             renderPreview();
         });
 
+        const expandAnswerBtn = createTextExpandButton('answer', qi, ai);
+
         const radio = document.createElement('div');
         radio.className = 'answer-radio';
         radio.style.cursor = 'pointer';
         radio.onclick = () => {
 
-            questions[qi].answers.forEach((a, i) => a.correct = (i === ai));
+            if (questions[qi].multiple) {
+                questions[qi].answers[ai].correct = !questions[qi].answers[ai].correct;
+                if (!questions[qi].answers.some(answer => answer.correct)) {
+                    questions[qi].answers[ai].correct = true;
+                }
+            } else {
+                questions[qi].answers.forEach((a, i) => a.correct = (i === ai));
+            }
             renderEdition(); renderPreview();
         };
 
-        item.append(letter, input, radio);
+        item.append(letter, input);
+        if (needsTextEditor(ans.text, 'answer')) item.append(expandAnswerBtn);
+        item.append(radio);
         return item;
+    }
+
+    function needsTextEditor(text, type) {
+        const limit = type === 'question' ? 48 : 28;
+        return String(text || '').length > limit;
+    }
+
+    function createTextExpandButton(type, qi, ai = null) {
+        const button = document.createElement('button');
+        button.className = type === 'question' ? 'btn-expand' : 'answer-expand';
+        button.type = 'button';
+        button.innerHTML = '<i class="ti ti-maximize"></i>';
+        button.title = 'Modifier en grand';
+        button.onclick = () => openTextEditor(type, qi, ai);
+        return button;
+    }
+
+    function openTextEditor(type, qi, ai = null) {
+        const modal = document.getElementById('text-editor-modal');
+        const input = document.getElementById('text-editor-input');
+        const title = document.getElementById('text-editor-title');
+        const value = type === 'question' ? questions[qi].text : questions[qi].answers[ai].text;
+
+        modal.dataset.type = type;
+        modal.dataset.qi = qi;
+        modal.dataset.ai = ai === null ? '' : ai;
+        title.textContent = type === 'question' ? 'Modifier la question' : 'Modifier la réponse';
+        input.value = value;
+        modal.classList.add('open');
+        input.focus();
+    }
+
+    function closeTextEditor(event) {
+        const modal = document.getElementById('text-editor-modal');
+        if (event && event.target !== modal) return;
+        modal.classList.remove('open');
+    }
+
+    function saveTextEditor() {
+        const modal = document.getElementById('text-editor-modal');
+        const input = document.getElementById('text-editor-input');
+        const qi = Number(modal.dataset.qi);
+        const ai = modal.dataset.ai === '' ? null : Number(modal.dataset.ai);
+
+        if (modal.dataset.type === 'question') {
+            questions[qi].text = input.value;
+        } else {
+            questions[qi].answers[ai].text = input.value;
+        }
+
+        modal.classList.remove('open');
+        renderEdition();
+        renderPreview();
     }
 
     function renderPreview() {
         const box = document.getElementById('preview-box');
+        const previewPanel = document.querySelector('.panel-right');
         const nextBtn = document.getElementById('next-question-btn');
         const prevBtn = document.getElementById('prev-question-btn');
         const showEmpty = !questions.length || (activeImportTab === 'ai' && !aiHasGenerated);
+        previewPanel.classList.toggle('is-empty', showEmpty);
         if (showEmpty) {
             box.classList.remove('preview-dark');
             box.innerHTML = `
@@ -701,12 +791,14 @@ let questions = [];   // [{ id, text, answers: [{letter, text, correct}] }]
 
         const onUp = () => { cleanup(); card.style.opacity = ''; dragState = null; };
         const cleanup = () => {
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('mouseup', onUp);
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            document.removeEventListener('pointercancel', onUp);
         };
 
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', onUp);
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+        document.addEventListener('pointercancel', onUp);
     }
 
     function addQuestion() {

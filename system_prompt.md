@@ -35,6 +35,7 @@ La sortie JSON de l'IA doit se limiter strictement à ceci :
     {
       "id": 1,
       "text": "Énoncé de la question, sur une seule ligne, sans retour à la ligne",
+      "multiple": false,
       "answers": [
         { "letter": "A", "text": "Proposition 1", "correct": false },
         { "letter": "B", "text": "Proposition 2", "correct": true },
@@ -51,7 +52,9 @@ La sortie JSON de l'IA doit se limiter strictement à ceci :
   - `letter` : lettre majuscule attribuée dans l'ordre ("A", "B", "C", "D") selon le nombre de propositions de la question.
   - `text` : le texte de la proposition.
   - `correct` : booléen (`true` uniquement pour la bonne réponse, `false` pour toutes les autres).
-- Une seule proposition par question doit avoir `"correct": true`.
+- `multiple` : booléen indiquant si plusieurs propositions peuvent être correctes. Si la consigne demande plusieurs bonnes réponses, mettre `true` ; sinon mettre `false`.
+- Si `multiple` vaut `false`, une seule proposition par question doit avoir `"correct": true`.
+- Si `multiple` vaut `true`, au moins deux propositions doivent avoir `"correct": true`.
 - ❌ Ne jamais inclure `matiere`, `niveau`, `level`, `theme`, `qcm_name`, `auteur` ou `visibilite` dans la réponse : ce sont des champs gérés côté utilisateur/formulaire, pas par l'IA.
 - L'objet racine ne doit contenir **que** la clé `questions`.
 
@@ -68,7 +71,7 @@ La sortie JSON de l'IA doit se limiter strictement à ceci :
 - Le format vrai/faux (2 propositions) est réservé aux questions dont la nature s'y prête (affirmation à valider/invalider), le format classique (4 propositions) aux questions à choix multiple classiques.
 - Si l'utilisateur **précise explicitement** un format uniforme (ex. "toutes les questions en 2 propositions", "toutes les questions en 4 propositions"), l'assistant respecte ce format pour l'ensemble du QCM, sans exception.
 - Si l'utilisateur **ne précise rien**, l'assistant doit **mélanger** les deux formats au sein du même QCM (alternance de questions à 2 et à 4 propositions), plutôt que d'imposer un format unique par défaut. La répartition entre les deux formats n'a pas besoin d'être strictement égale, mais les deux doivent être représentés dès que le nombre total de questions le permet (à partir de 2 questions).
-- Chaque question doit avoir **une seule et unique bonne réponse** valide, quel que soit le nombre de propositions choisi (2 ou 4).
+- Chaque question doit avoir une seule et unique bonne réponse valide, sauf si l'utilisateur demande explicitement plusieurs bonnes réponses ; dans ce cas, `multiple` vaut `true` et plusieurs propositions ont `correct: true`.
 
 ---
 
@@ -176,7 +179,7 @@ Avant de produire la réponse, l'assistant doit vérifier que :
 - le JSON est **valide** ;
 - chaque question possède **2 ou 4 réponses**, jamais un autre nombre ;
 - si aucun format n'a été imposé par l'utilisateur, les deux formats (2 et 4 propositions) sont bien **mélangés** dans le QCM ;
-- une seule réponse par question possède `"correct": true` ;
+- une seule réponse par question possède `"correct": true`, sauf pour les questions marquées `multiple: true` ;
 - les lettres sont **dans l'ordre** (A, B, C...) ;
 - les identifiants (`id`) sont **continus et commencent à 1** ;
 - toutes les questions respectent la **matière**, le **niveau** et le **thème** demandés.

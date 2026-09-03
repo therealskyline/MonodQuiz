@@ -86,7 +86,7 @@
         </div>
 
         
-        <div class="panel panel-right">
+        <div class="panel panel-right is-empty">
             <div class="preview-title-row">
                 <i class="ti ti-eye"></i>
                 <div class="preview-title">Aperçu du QCM</div>
@@ -194,6 +194,20 @@
             <div class="save-modal-actions">
                 <button class="btn-secondary" type="button" onclick="closeSaveModal()">Annuler</button>
                 <button class="save-btn" type="button" onclick="confirmSave()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-editor-modal" id="text-editor-modal" onclick="closeTextEditor(event)">
+        <div class="text-editor-content">
+            <div class="text-editor-header">
+                <h3 id="text-editor-title">Modifier le texte</h3>
+                <button class="modal-close" type="button" onclick="closeTextEditor()">×</button>
+            </div>
+            <textarea id="text-editor-input" rows="7"></textarea>
+            <div class="text-editor-actions">
+                <button class="btn-secondary" type="button" onclick="closeTextEditor()">Annuler</button>
+                <button class="save-btn" type="button" onclick="saveTextEditor()">Enregistrer</button>
             </div>
         </div>
     </div>

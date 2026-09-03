@@ -1,6 +1,7 @@
 let qcmData = null;
         let currentQuestionIndex = 0;
         let userAnswers = {};
+        let submittedQuestions = {};
 
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
@@ -30,6 +31,7 @@ let qcmData = null;
                 
                 currentQuestionIndex = 0;
                 userAnswers = {};
+                submittedQuestions = {};
                 renderQuestion();
             } catch (error) {
                 console.error('Erreur:', error);
@@ -42,6 +44,7 @@ let qcmData = null;
             const question = qcmData.questions[currentQuestionIndex];
             const totalQuestions = qcmData.questions.length;
             
+            document.getElementById('multipleQuestionBadge').classList.toggle('is-visible', !!question.multiple);
             document.getElementById('progressText').textContent = `Question ${currentQuestionIndex + 1} / ${totalQuestions}`;
             
             let html = `
@@ -52,7 +55,9 @@ let qcmData = null;
             const answers = question.answers || question.reponses || [];
             const letters = ['a', 'b', 'c', 'd'];
             const answered = userAnswers[currentQuestionIndex];
-            const hasAnswered = answered !== undefined;
+            const isMultiple = !!question.multiple;
+            const hasAnswered = answered !== undefined && (!isMultiple || submittedQuestions[currentQuestionIndex]);
+            const selectedIndices = Array.isArray(answered) ? answered : (answered === undefined ? [] : [answered]);
             
             answers.forEach((answer, idx) => {
                 const answerText = typeof answer === 'string' ? answer : (answer.text || '');
@@ -65,7 +70,7 @@ let qcmData = null;
                     if (isCorrectAnswer) {
                         stateClass = 'correct-answer';
                         icon = '<i class="fa-solid fa-check result-icon"></i>';
-                    } else if (idx === answered) {
+                    } else if (selectedIndices.includes(idx)) {
                         stateClass = 'wrong-answer';
                         icon = '<i class="fa-solid fa-xmark result-icon"></i>';
                     } else {
@@ -74,7 +79,7 @@ let qcmData = null;
                 }
                 
                 html += `
-                    <button class="answer-btn ${letters[idx]} ${stateClass} ${hasAnswered ? 'locked' : ''}" 
+                    <button class="answer-btn ${letters[idx]} ${isMultiple ? 'multi-answer' : ''} ${selectedIndices.includes(idx) && !hasAnswered ? 'selected' : ''} ${stateClass} ${hasAnswered ? 'locked' : ''}" 
                             onclick="selectAnswer(${idx})">
                         <div class="answer-letter">${letter}</div>
                         <div class="answer-text">${escapeHtml(answerText)}</div>
@@ -84,6 +89,10 @@ let qcmData = null;
             });
             
             html += `</div>`;
+
+            if (isMultiple && !hasAnswered) {
+                html += `<button class="next-btn multi-answer-submit ${selectedIndices.length ? 'show' : ''}" onclick="validateMultipleAnswer()">Valider mes réponses</button>`;
+            }
             
             const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
             html += `
@@ -106,9 +115,38 @@ let qcmData = null;
             return false;
         }
 
+        function getCorrectIndices(question, answers) {
+            const indices = answers.reduce((result, answer, idx) => {
+                if (isCorrect(question, answer, idx)) result.push(idx);
+                return result;
+            }, []);
+            return indices.length ? indices : [question.correctAnswer ?? question.correctIndex ?? question.correct ?? 0];
+        }
+
         function selectAnswer(answerIndex) {
+            const question = qcmData.questions[currentQuestionIndex];
+            if (question.multiple) {
+                if (submittedQuestions[currentQuestionIndex]) return;
+                const selected = [];
+                const current = userAnswers[currentQuestionIndex] || [];
+                selected.push(...current);
+                const existingIndex = selected.indexOf(answerIndex);
+                if (existingIndex === -1) selected.push(answerIndex);
+                else selected.splice(existingIndex, 1);
+                userAnswers[currentQuestionIndex] = selected;
+                renderQuestion();
+                return;
+            }
             if (userAnswers[currentQuestionIndex] !== undefined) return;
             userAnswers[currentQuestionIndex] = answerIndex;
+            renderQuestion();
+        }
+
+        function validateMultipleAnswer() {
+            const answered = userAnswers[currentQuestionIndex];
+            if (!Array.isArray(answered) || answered.length === 0) return;
+            userAnswers[currentQuestionIndex] = [...new Set(answered)].sort((a, b) => a - b);
+            submittedQuestions[currentQuestionIndex] = true;
             renderQuestion();
         }
 
@@ -142,7 +180,11 @@ let qcmData = null;
             qcmData.questions.forEach((question, idx) => {
                 const answers = question.answers || question.reponses || [];
                 const answered = userAnswers[idx];
-                if (answered !== undefined && isCorrect(question, answers[answered], answered)) {
+                const selectedIndices = Array.isArray(answered) ? answered : (answered === undefined ? [] : [answered]);
+                const correctIndices = getCorrectIndices(question, answers);
+                const isSubmitted = !question.multiple || submittedQuestions[idx];
+                if (isSubmitted && answered !== undefined && selectedIndices.length === correctIndices.length &&
+                    selectedIndices.every(answerIndex => correctIndices.includes(answerIndex))) {
                     goodCount++;
                 }
             });
@@ -157,6 +199,7 @@ let qcmData = null;
             
             const progressEl = document.getElementById('progressText');
             if (progressEl) progressEl.style.display = 'none';
+            document.getElementById('multipleQuestionBadge').classList.remove('is-visible');
             
             document.body.style.background = '#F0F1FE';
             document.body.classList.add('score-mode');
@@ -271,8 +314,10 @@ let qcmData = null;
         function restartQuiz() {
             currentQuestionIndex = 0;
             userAnswers = {};
+            submittedQuestions = {};
             const progressEl = document.getElementById('progressText');
             if (progressEl) progressEl.style.display = '';
+            document.getElementById('multipleQuestionBadge').classList.remove('is-visible');
             document.body.style.background = '';
             document.body.classList.remove('score-mode');
             const wrapEl = document.getElementById('scoreWrap');

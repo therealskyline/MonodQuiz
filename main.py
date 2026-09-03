@@ -127,7 +127,7 @@ _ELEVE_ONLY_PAGES = {"use_qcm", "eleve_dashboard"}
 QUESTION_DURATION = 30
 REVEAL_DELAY = 3
 LEADERBOARD_DELAY = 5
-DISCONNECT_GRACE_PERIOD = 5.0
+DISCONNECT_GRACE_PERIOD = 1.0
 
 rooms: Dict[str, dict] = {}
 GAME_IN_PROGRESS_PHASES = ("question", "reveal", "leaderboard")
@@ -215,15 +215,15 @@ def format_qcm_for_classroom(raw_questions: list) -> list:
         q_text = q.get("text", "Question sans texte")
         ans_list = q.get("answers", [])
         ans_texts = [a.get("text", "") for a in ans_list]
-        correct_idx = 0
-        for i, a in enumerate(ans_list):
-            if a.get("correct", False):
-                correct_idx = i
-                break
+        correct_indices = [i for i, answer in enumerate(ans_list) if answer.get("correct", False)]
+        if not correct_indices:
+            correct_indices = [0]
         formatted.append({
             "question": q_text,
             "answers": ans_texts,
-            "correct": correct_idx
+            "correct": correct_indices[0],
+            "correct_indices": correct_indices,
+            "multiple": bool(q.get("multiple", False)),
         })
     return formatted
 
@@ -383,6 +383,7 @@ async def start_question(code: str) -> None:
     quiz["current_question_payload"] = {
         "type": "question", "index": idx, "total": len(formatted_questions),
         "question": question["question"], "answers": question["answers"],
+        "multiple": question["multiple"],
         "full_duration": QUESTION_DURATION,
     }
 
@@ -407,13 +408,17 @@ async def end_question(code: str, index: int, total_q: int) -> None:
     qcm_data = json.loads(qcm_file_path.read_text(encoding="utf-8"))
     formatted_questions = format_qcm_for_classroom(qcm_data.get("questions", []))
     question = formatted_questions[index]
-    correct_index = question["correct"]
+    correct_indices = question["correct_indices"]
+    correct_index = correct_indices[0]
 
     counts = [0, 0, 0, 0]
     correct_order = []
-    for student_name, ans_idx in quiz["answers"].items():
-        if isinstance(ans_idx, int) and 0 <= ans_idx < 4: counts[ans_idx] += 1
-        if ans_idx == correct_index:
+    correct_set = set(correct_indices)
+    for student_name, answer_value in quiz["answers"].items():
+        selected_indices = answer_value if isinstance(answer_value, list) else [answer_value]
+        for answer_index in selected_indices:
+            if isinstance(answer_index, int) and 0 <= answer_index < 4: counts[answer_index] += 1
+        if set(selected_indices) == correct_set:
             quiz["scores"][student_name] = quiz["scores"].get(student_name, 0) + 1
             correct_order.append(student_name)
 
@@ -421,13 +426,14 @@ async def end_question(code: str, index: int, total_q: int) -> None:
         pts = 150 if rank == 1 else max(0, 150 - 20 - rank)
         quiz["points"][student_name] = quiz["points"].get(student_name, 0) + pts
 
-    total_answers = sum(counts)
-    percents = [round((c / total_answers) * 100) if total_answers > 0 else 0 for c in counts]
+    total_respondents = len(quiz["answers"])
+    percents = [round((c / total_respondents) * 100) if total_respondents > 0 else 0 for c in counts]
     is_last = index == total_q - 1
 
     quiz["phase_ends_at"] = time.monotonic() + REVEAL_DELAY
     quiz["current_reveal_payload"] = {
         "type": "reveal", "index": index, "total": total_q, "correct_index": correct_index,
+        "correct_indices": correct_indices, "multiple": question["multiple"],
         "answers": question["answers"], "counts": counts, "percents": percents, "is_last": is_last,
     }
 
@@ -544,10 +550,11 @@ async def handle_student_disconnect(code: str, name: str, old_ws: WebSocket):
     if room and room["students"].get(name) is old_ws:
         room["students"].pop(name, None)
         await broadcast_student_list(code)
-        if not room["students"]:
+        quiz = room.get("quiz")
+        game_in_progress = bool(quiz) and quiz.get("phase") in GAME_IN_PROGRESS_PHASES
+        if not room["students"] and game_in_progress:
             await handle_room_empty(code)
             return
-        quiz = room.get("quiz")
         if quiz and quiz["phase"] == "question":
             await send_to(room.get("prof_ws"), {"type": "responses_update", "received": len(quiz["answers"]), "total": len(room["students"])})
 
@@ -626,10 +633,17 @@ async def websocket_endpoint(websocket: WebSocket, code: str, role: str = "eleve
             elif role != "prof" and action == "answer":
                 quiz = room.get("quiz")
                 if quiz and quiz["phase"] == "question" and name not in quiz["answers"]:
-                    ans_idx = data.get("answer_index")
-                    if isinstance(ans_idx, int) and 0 <= ans_idx < 4:
-                        quiz["answers"][name] = ans_idx
-                        await send_to(websocket, {"type": "answer_locked", "answer_index": ans_idx})
+                    answer_value = data.get("answer_index")
+                    is_multiple = quiz["current_question_payload"].get("multiple", False)
+                    if is_multiple and isinstance(answer_value, list):
+                        answer_value = sorted(set(index for index in answer_value if isinstance(index, int) and 0 <= index < 4))
+                    elif isinstance(answer_value, int) and 0 <= answer_value < 4:
+                        answer_value = answer_value
+                    else:
+                        answer_value = None
+                    if answer_value is not None and (not is_multiple or answer_value):
+                        quiz["answers"][name] = answer_value
+                        await send_to(websocket, {"type": "answer_locked", "answer_index": answer_value})
                         await send_to(room.get("prof_ws"), {"type": "responses_update", "received": len(quiz["answers"]), "total": len(room["students"])})
                         if room["students"] and len(quiz["answers"]) >= len(room["students"]):
                             cancel_quiz_timer(quiz)

@@ -6,6 +6,7 @@ const headerEl = document.querySelector('.header');
     const connectedTitle = document.getElementById('connectedTitle');
     const startBtn = document.getElementById('startBtn');
     const validateBtn = document.getElementById('validateBtn');
+    const multiAnswerSubmit = document.getElementById('multiAnswerSubmit');
     const questionPhaseEl = document.getElementById('questionPhase');
     const revealPhaseEl = document.getElementById('revealPhase');
     const leaderboardPhaseEl = document.getElementById('leaderboardPhase');
@@ -14,6 +15,8 @@ const headerEl = document.querySelector('.header');
     const LETTERS = ['A', 'B', 'C', 'D'];
     let connectedStudents = [];
     let hasAnsweredCurrent = false;
+    let selectedAnswerIndices = [];
+    let currentQuestionMultiple = false;
     let timerInterval = null;
     let nextInterval = null;
     let lastRanking = [];
@@ -153,6 +156,7 @@ const headerEl = document.querySelector('.header');
 
     startBtn.addEventListener('click', () => ws.send(JSON.stringify({ action: 'start_quiz' })));
     validateBtn.addEventListener('click', () => ws.send(JSON.stringify({ action: 'validate_question' })));
+    multiAnswerSubmit.addEventListener('click', submitMultipleAnswer);
 
     function enterQuizView() {
       profMode.classList.add('hidden'); eleveMode.classList.remove('active'); quizView.classList.add('active'); document.body.classList.remove('score-mode');
@@ -167,30 +171,55 @@ const headerEl = document.querySelector('.header');
 
     function handleQuestion(msg) {
       clearInterval(timerInterval); clearInterval(nextInterval); hasAnsweredCurrent = false;
+      selectedAnswerIndices = [];
+      currentQuestionMultiple = msg.multiple === true || msg.multiple === 1 || msg.multiple === 'true';
       enterQuizView(); showPhase('question');
+      document.getElementById('multipleQuestionBadge').classList.toggle('is-visible', currentQuestionMultiple);
       document.getElementById('quizProgressText').textContent = `Question ${msg.index + 1}/${msg.total}`;
       document.getElementById('questionTitle').textContent = msg.question;
-      renderAnswers(msg.answers);
+      renderAnswers(msg.answers, currentQuestionMultiple);
       document.getElementById('responsesCount').textContent = `Réponses reçues : 0/${connectedStudents.length}`;
       startTimer(msg.duration, msg.full_duration || msg.duration);
     }
-    function renderAnswers(answersArr) {
+    function renderAnswers(answersArr, multiple = false) {
       const grid = document.getElementById('answersGrid'); grid.innerHTML = '';
+      multiAnswerSubmit.style.display = multiple && role === 'eleve' ? 'inline-block' : 'none';
       answersArr.forEach((text, idx) => {
         const letter = LETTERS[idx]; const btn = document.createElement('button'); btn.className = `answer-btn ${letter.toLowerCase()}`;
         const letterEl = document.createElement('div'); letterEl.className = 'answer-letter'; letterEl.textContent = letter;
         const textEl = document.createElement('div'); textEl.className = 'answer-text'; textEl.textContent = text;
         btn.append(letterEl, textEl);
+        if (multiple) btn.classList.add('multi-answer');
         if (role === 'eleve') btn.addEventListener('click', () => selectAnswer(idx, btn));
         else btn.classList.add('readonly');
         grid.appendChild(btn);
       });
     }
     function selectAnswer(answerIndex, btn) {
-      if (hasAnsweredCurrent) return; hasAnsweredCurrent = true;
+      if (hasAnsweredCurrent) return;
+      if (currentQuestionMultiple) {
+        const selected = selectedAnswerIndices.indexOf(answerIndex);
+        if (selected === -1) {
+          selectedAnswerIndices.push(answerIndex);
+          btn.classList.add('selected');
+        } else {
+          selectedAnswerIndices.splice(selected, 1);
+          btn.classList.remove('selected');
+        }
+        multiAnswerSubmit.disabled = selectedAnswerIndices.length === 0;
+        return;
+      }
+      hasAnsweredCurrent = true;
       document.querySelectorAll('#answersGrid .answer-btn').forEach((b) => b.classList.add('locked'));
       btn.classList.add('selected');
       ws.send(JSON.stringify({ action: 'answer', answer_index: answerIndex }));
+    }
+    function submitMultipleAnswer() {
+      if (hasAnsweredCurrent || selectedAnswerIndices.length === 0) return;
+      hasAnsweredCurrent = true;
+      document.querySelectorAll('#answersGrid .answer-btn').forEach((b) => b.classList.add('locked'));
+      multiAnswerSubmit.style.display = 'none';
+      ws.send(JSON.stringify({ action: 'answer', answer_index: selectedAnswerIndices }));
     }
     function startTimer(duration, fullDuration) {
       clearInterval(timerInterval);
@@ -205,10 +234,17 @@ const headerEl = document.querySelector('.header');
 
     function handleReveal(msg) {
       clearInterval(timerInterval); enterQuizView(); showPhase('reveal');
+      document.getElementById('multipleQuestionBadge').classList.remove('is-visible');
       document.getElementById('revealProgressText').textContent = `Question ${msg.index + 1}/${msg.total}`;
-      const correctLetter = LETTERS[msg.correct_index]; const correctText = msg.answers[msg.correct_index]; const banner = document.getElementById('revealBanner');
-      const correctColors = { 'a': '#D32837', 'b': '#2A6ACB', 'c': '#359B40', 'd': '#E2A707' }; const correctColor = correctColors[correctLetter.toLowerCase()];
-      banner.innerHTML = `Réponse correcte : <span style="color: ${correctColor};">${correctLetter} - ${correctText}</span>`;
+      const correctIndices = msg.correct_indices || [msg.correct_index];
+      const banner = document.getElementById('revealBanner');
+      const correctColors = { A: '#D32837', B: '#2A6ACB', C: '#359B40', D: '#E2A707' };
+      const correctLabels = correctIndices.map(idx => {
+        const letter = LETTERS[idx];
+        const text = escapeHtml(msg.answers[idx] || '');
+        return `<span class="correct-answer-label" style="color: ${correctColors[letter] || '#FFFFFF'};">${letter} - ${text}</span>`;
+      });
+      banner.innerHTML = `Réponse${correctIndices.length > 1 ? 's' : ''} correcte${correctIndices.length > 1 ? 's' : ''} : ${correctLabels.join(' <span class="correct-answer-separator">;</span> ')}`;
       const barsContainer = document.getElementById('revealBars'); barsContainer.innerHTML = '';
       LETTERS.forEach((letter, idx) => {
         const row = document.createElement('div'); row.className = 'reveal-row';

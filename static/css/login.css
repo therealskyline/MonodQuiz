@@ -232,15 +232,78 @@ body {
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   font-size: clamp(12px, 1.2vw, 16px);
   font-weight: 500;
   color: #666;
   text-align: center;
-  padding: 1.5vh;
+  gap: clamp(12px, 2vw, 24px);
+  padding: clamp(16px, 2vw, 28px);
   opacity: 0;
   transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.4s ease;
   box-shadow: 0 8px 20px rgba(215, 211, 245, 0.5);
+}
+
+.theme-icon {
+  width: clamp(68px, 10vw, 112px);
+  height: clamp(68px, 10vw, 112px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: clamp(30px, 4vw, 52px);
+}
+
+.algebra-icon {
+  background: #edf5ff;
+  color: #1877e8;
+}
+
+.geometry-icon {
+  background: #e9f9ed;
+  color: #19a974;
+}
+
+.statistics-icon {
+  background: #fff0f5;
+  color: #e93672;
+}
+
+.functions-icon {
+  background: #f0eaff;
+  color: #6842e8;
+}
+
+.theme-copy {
+  min-width: 0;
+  text-align: left;
+}
+
+.theme-copy h2 {
+  color: #172554;
+  font-size: clamp(15px, 1.7vw, 24px);
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.theme-line {
+  display: block;
+  width: 100%;
+  height: 3px;
+  margin: 8px 0 10px;
+  border-radius: 2px;
+}
+
+.card-tl .theme-line { background: #1877e8; }
+.card-tr .theme-line { background: #19a974; }
+.card-bl .theme-line { background: #e93672; }
+.card-br .theme-line { background: #6842e8; }
+
+.theme-copy p {
+  color: #172554;
+  font-size: clamp(11px, 1.1vw, 16px);
+  line-height: 1.55;
 }
 
 .card-tl {
